@@ -1,0 +1,61 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Bit-identical reproducibility fixes:
+ * Don't put timestamps into header files.
+ * Don't include random build path in config file.
+ * 2016-01-07: Include LC_ALL=C when sorting
+Bugs-Debian: https://bugs.debian.org/792824
+Last-Updated: 2016-01-07
+Forwarded: no
+
+Index: magics++-4.8.0/tools/xml2cc.pl
+===================================================================
+--- magics++-4.8.0.orig/tools/xml2cc.pl
++++ magics++-4.8.0/tools/xml2cc.pl
+@@ -10,6 +10,11 @@
+ 
+ use XML::Parser;
+ use Time::localtime;
++use POSIX qw(locale_h);
++use locale;
++
++# To ensure sorting is reproducible
++setlocale(LC_ALL, "C.UTF-8");
+ 
+ my $file  = shift;
+ my $dir   = shift;
+@@ -196,7 +201,7 @@ EOF
+    
+     my @interfaces = (split(/\//, $current->{attributes}->{interface}), @impl);
+     
+-    foreach $i (@impl) 
++    foreach $i (sort(@impl))
+     {
+         print "#include \"$i.h\"\n";
+     }
+Index: magics++-4.8.0/tools/xml2mv.pl
+===================================================================
+--- magics++-4.8.0.orig/tools/xml2mv.pl
++++ magics++-4.8.0/tools/xml2mv.pl
+@@ -11,9 +11,12 @@
+ 
+ use XML::Parser;
+ use Data::Dumper;
+-
++use POSIX qw(locale_h);
++use locale; 
+ use Time::localtime;
+ 
++setlocale(LC_ALL, 'C.UTF-8');
++
+ my $file = shift;
+ my $dir = shift;
+ my $Author="MagicsTeam";
+@@ -190,7 +193,7 @@ my $includes = {};
+        $includes->{$to} = "find" unless $basetype{$to} || $to eq 'Colour' ;
+     }
+     
+-    foreach my $include (keys %{$includes} ) 
++    foreach my $include (sort(keys %{$includes} ))
+     {
+           print "#include \"$include\Wrapper.h\"\n"; 
+     }

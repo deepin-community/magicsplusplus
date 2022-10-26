@@ -1,0 +1,8 @@
+
+With Magics 2.22 the installtion has changed to use CMake. This is inline 
+with other software packages at ECMWF.
+
+For more deatils please consult the installation guide at
+
+  https://software.ecmwf.int/wiki/display/MAGP/Installation+Guide
+

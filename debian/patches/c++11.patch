@@ -1,0 +1,20 @@
+--- a/src/common/Transformation.cc
++++ b/src/common/Transformation.cc
+@@ -14,6 +14,7 @@
+ 
+ #include <limits>
+ 
++#include <limits>
+ #include "Transformation.h"
+ #include <iomanip>
+ #include "BasicGraphicsObject.h"
+--- a/src/visualisers/SimplePolylineVisualiser.cc
++++ b/src/visualisers/SimplePolylineVisualiser.cc
+@@ -21,6 +21,7 @@
+ 
+ #include <limits>
+ 
++#include <limits>
+ #include "SimplePolylineVisualiser.h"
+ #include "Data.h"
+ #include "LegendVisitor.h"

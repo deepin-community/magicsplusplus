@@ -1,0 +1,198 @@
+/*
+ * (C) Copyright 1996-2016 ECMWF.
+ *
+ * This software is licensed under the terms of the Apache Licence Version 2.0
+ * which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+ * In applying this licence, ECMWF does not waive the privileges and immunities
+ * granted to it by virtue of its status as an intergovernmental organisation nor
+ * does it submit to any jurisdiction.
+ */
+
+/*! \file PolyShadingTechnique.h
+    \brief Definition of the Template class PolyShadingTechnique.
+
+    Magics Team - ECMWF 2004
+
+    Started: Wed 18-Aug-2004
+
+    Changes:
+
+*/
+
+#ifndef PolyShadingTechnique_H
+#define PolyShadingTechnique_H
+
+#include "magics.h"
+
+#include "ColourTechnique.h"
+#include "ContourMethod.h"
+#include "DotPolyShadingMethod.h"
+#include "GridShadingAttributes.h"
+#include "HatchPolyShadingMethod.h"
+#include "PolyShadingTechniqueAttributes.h"
+#include "ShadingTechnique.h"
+
+namespace magics {
+
+class LevelSelection;
+
+
+class PolyShadingTechnique : public ShadingTechnique, public PolyShadingTechniqueAttributes {
+public:
+    PolyShadingTechnique() {}
+    virtual ~PolyShadingTechnique() override {}
+
+    void set(const map<string, string>& map) override { PolyShadingTechniqueAttributes::set(map); }
+    void set(const XmlNode& node) override { PolyShadingTechniqueAttributes::set(node); }
+    bool accept(const string& node) override { return PolyShadingTechniqueAttributes::accept(node); }
+
+    virtual ShadingTechnique* clone() const override { return new PolyShadingTechnique(); }
+
+    bool shadingMode() override { return true; }
+    bool hasLegend() override { return true; }  // Isolien legend is not needed!
+    void operator()(Polyline* poly) const override { (*this->method_)(*poly); }
+
+    void visit(LegendVisitor& legend, const ColourTechnique& colour) override {
+        (*this->method_).visit(legend, colour);
+    }
+
+    int index(double value) override { return method_->index(value); }
+    int rightIndex(double value) override { return method_->rightIndex(value); }
+    int leftIndex(double value) override { return method_->leftIndex(value); }
+
+    virtual bool prepare(LevelSelection& levels, const ColourTechnique& colours) override {
+        method_->prepare(levels, colours);
+        // True if the shading technique needs the isolines to be calculated...
+        return true;
+    }
+    virtual CellArray* array(MatrixHandler& matrix, IntervalMap<int>& range, const Transformation& transformation,
+                             int width, int height, float resolution, const string& technique) override;
+
+protected:
+    //! Method to print string about this class on to a stream of type ostream (virtual).
+    virtual void print(ostream& s) const override { s << "PolyShadingTechnique[]"; }
+
+
+private:
+    //! Copy constructor - No copy allowed
+    PolyShadingTechnique(const PolyShadingTechnique&);
+    //! Overloaded << operator to copy - No copy allowed
+    PolyShadingTechnique& operator=(const PolyShadingTechnique&);
+};
+
+class GridShading : public PolyShadingTechnique, public GridShadingAttributes {
+public:
+    GridShading() {}
+    virtual ~GridShading() override {}
+
+    void set(const map<string, string>& map) override { GridShadingAttributes::set(map); }
+    void set(const XmlNode& node) override { GridShadingAttributes::set(node); }
+    bool accept(const string& node) override { return GridShadingAttributes::accept(node); }
+
+    ShadingTechnique* clone() const override { return new GridShading(); }
+    void operator()(Polyline* poly, const ColourTechnique& technique) const {
+        poly->setFilled(true);
+        poly->setStroke(false);
+        FillShadingProperties* shading = new FillShadingProperties();
+        poly->setShading(shading);
+    }
+    void operator()(Polyline* poly) const override;
+    void visit(LegendVisitor& legend, const ColourTechnique& colour) override;
+    CellArray* array(MatrixHandler& matrix, IntervalMap<int>& range, const Transformation& transformation, int width,
+                     int height, float resolution, const string& technique) override;
+    virtual bool needClipping() override { return true; }
+    bool method(ContourMethod* method) override {
+        // FIXME: memory leak
+        method = new ContourMethod();
+        return true;
+    }
+
+protected:
+    //! Method to print string about this class on to a stream of type ostream (virtual).
+    void print(ostream& s) const override { s << "GridShading[]"; }
+
+
+private:
+    //! Copy constructor - No copy allowed
+    GridShading(const GridShading&);
+    //! Overloaded << operator to copy - No copy allowed
+    GridShading& operator=(const GridShading&);
+};
+struct LegendEntryBuilder {
+    LegendEntryBuilder(LegendVisitor& legend, const PolyShadingMethod* method, const ColourTechnique& colours) :
+        legend_(legend), method_(method), colours_(colours), first_(true){};
+    LegendEntryBuilder(LegendVisitor& legend, const ColourTechnique& colours) :
+        legend_(legend), method_(0), colours_(colours), first_(true){};
+    ~LegendEntryBuilder(){};
+    bool operator()(const pair<double, ColourInfo>& first, const pair<double, ColourInfo>& second) {
+        Polyline* box = new Polyline();
+
+        box->index_ = first.second.index_;
+        double min  = first.second.level_;
+        double max  = second.second.level_;
+
+        if (method_)
+            (*method_)(*box);
+        else
+            box->setShading(new FillShadingProperties());
+        box->setFillColour(colours_.right(min));
+        box->setFilled(true);
+        box->setStroke(true);
+        box->setColour(colours_.right(min));
+
+        LegendEntry* entry = new BoxEntry(min, max, box);
+        if (first_) {
+            first_ = false;
+            entry->first();
+        }
+        for (vector<double>::iterator val = legend_.values_list_.begin(); val != legend_.values_list_.end(); ++val) {
+            if (min <= *val && *val < max) {
+                string text = tostring(*val);
+                entry->userText(text, "user");
+                break;
+            }
+        }
+
+        entries_.push_back(entry);
+
+        legend_.add(entry);
+        return false;
+    }
+
+    void setLabels() {
+        if (legend_.values_list_.empty())
+            return;
+        if (legend_.empty())
+
+            for (auto& entry : legend_) {
+                for (auto& val : legend_.values_list_) {
+                    if (entry->min() <= val && val < entry->max()) {
+                        string text = tostring(val);
+                        entry->userText(text, "user");
+                        break;
+                    }
+                }
+            }
+
+        auto& last = legend_.back();
+
+        for (auto& val : legend_.values_list_) {
+            if (same(last->max(), val)) {
+                string text = tostring(val);
+                last->userText(text, "user");
+            }
+        }
+    }
+
+
+    LegendVisitor& legend_;
+    vector<LegendEntry*> entries_;
+
+    const PolyShadingMethod* method_;
+    const ColourTechnique& colours_;
+    bool first_;
+};
+}  // namespace magics
+
+
+#endif

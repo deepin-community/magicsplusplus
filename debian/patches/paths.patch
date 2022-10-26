@@ -1,0 +1,25 @@
+Description: Use system perl, not path, for safety
+Author: Alastair McKinstry <mckinstry@debian.org>
+Last-Updated: 2018-11-15
+Forwarded: not-needed
+
+Index: magics++-4.8.0/apps/metgram/metgram
+===================================================================
+--- magics++-4.8.0.orig/apps/metgram/metgram
++++ magics++-4.8.0/apps/metgram/metgram
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env perl
++#!/usr/bin/perl
+ use strict;
+ use Data::Dumper;
+ use IO::Socket;
+Index: magics++-4.8.0/tools/magicsCompatibilityChecker
+===================================================================
+--- magics++-4.8.0.orig/tools/magicsCompatibilityChecker
++++ magics++-4.8.0/tools/magicsCompatibilityChecker
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/python3
+ #
+ # Copyright 2011 European Centre for Medium-Range Weather Forecasts (ECMWF)
+ # 

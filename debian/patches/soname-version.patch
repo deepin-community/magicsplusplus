@@ -1,0 +1,36 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Add versioned soname for Debian.
+Forwarded: no
+Last-Updated: 2015-06-19
+
+Index: magics++-4.8.0/src/CMakeLists.txt
+===================================================================
+--- magics++-4.8.0.orig/src/CMakeLists.txt
++++ magics++-4.8.0/src/CMakeLists.txt
+@@ -100,6 +100,10 @@ ecbuild_add_library( TARGET    MagPlus
+                         ${MAGICS_EXTRA_LIBRARIES}
+                         eccodes
+                         ${STDFSLIB}
++			VERSION
++		        3.0.0
++			SOVERSION
++			3
+                      PRIVATE_INCLUDES $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/clipper>
+                                       ${MAGICS_PRIVATE_INCLUDE_DIRS}
+ 
+@@ -136,11 +140,15 @@ endif()
+ ecbuild_add_library( TARGET         MagPlusSingle
+                      SOURCES        MagicsSingle.cc
+                      PRIVATE_LIBS   MagPlus
++		     VERSION        3.0.0
++		     SOVERSION      3
+                      TYPE           SHARED )
+ 
+ ecbuild_add_library( TARGET         MagPlusDouble
+                      SOURCES        MagicsDouble.cc
+                      PRIVATE_LIBS   MagPlus
++		     VERSION        3.0.0
++		     SOVERSION      3
+                      TYPE           SHARED )
+ 
+ if( metview )

@@ -1,0 +1,24 @@
+--- a/tools/mapgen_clip
++++ b/tools/mapgen_clip
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/python3
+ #
+ # Copyright 2007 European Centre for Medium-Range Weather Forecasts (ECMWF)
+ # 
+--- a/tools/xml2cc_mv.py
++++ b/tools/xml2cc_mv.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/python3
+ import jinja2
+ from xml.sax.handler import ContentHandler
+ from xml.sax import make_parser
+--- a/tools/xml2mv.py
++++ b/tools/xml2mv.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/python3
+ # (C) Copyright 1996-2016 ECMWF.
+ #
+ # This software is licensed under the terms of the Apache Licence Version 2.0

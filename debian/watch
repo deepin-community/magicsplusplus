@@ -1,0 +1,2 @@
+version=3
+opts="dversionmangle=s/(\d+)$/$1-Source/" https://confluence.ecmwf.int/display/MAGP/Releases /download/attachments/3473464/Magics\-(.+)\-Source\.tar\.gz\?api=v2

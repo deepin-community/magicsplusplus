@@ -1,0 +1,11 @@
+terralib.patch
+soname-version.patch
+reproducibility.patch
+# pkgconfig-fix.patch
+rm-ksh.patch
+fix-warnings.patch
+paths.patch
+python3.patch
+# escape-path-in-cmake.patch
+python3-paths.patch
+c++11.patch

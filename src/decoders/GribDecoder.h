@@ -1,0 +1,410 @@
+/*
+ * (C) Copyright 1996-2016 ECMWF.
+ *
+ * This software is licensed under the terms of the Apache Licence Version 2.0
+ * which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+ * In applying this licence, ECMWF does not waive the privileges and immunities
+ * granted to it by virtue of its status as an intergovernmental organisation nor
+ * does it submit to any jurisdiction.
+ */
+
+/*! \file GribDecoder.h
+    \brief Definition of the Template class GribDecoder.
+
+    Magics Team - ECMWF 2004
+
+    Started: Tue 16-Mar-2004
+
+    Changes:
+
+*/
+
+#ifndef GribDecoder_H
+#define GribDecoder_H
+
+#include "magics.h"
+
+
+#include "Data.h"
+#include "GribDecoderAttributes.h"
+#include "MagicsDecoder.h"
+#include "UserPoint.h"
+
+
+#include "GribLoopAttributes.h"
+
+#include <eccodes.h>
+
+#include "GribInterpretor.h"
+
+
+namespace magics {
+class GribDecoder;
+struct MatchCriteria {
+    MatchCriteria() {}
+    virtual ~MatchCriteria() {}
+    virtual bool verify(const GribDecoder&, const string&, const string&) { return false; }
+};
+
+class GribMagException : public MagicsException {
+public:
+    GribMagException(const string& why) : MagicsException("Grib API error message: " + why) {}
+};
+class GribFileMagException : public MagicsException {
+public:
+    GribFileMagException(const string& file, int index) {
+        ostringstream s;
+        s << "Grib decoding failed: field " << index << " in " << file << endl;
+        reason(s.str());
+    }
+};
+
+class GribLoop;
+class GribEntryDecoder;
+
+
+class GribDecoder : public Decoder, public Data, public GribDecoderAttributes {
+public:
+    GribDecoder();
+    virtual ~GribDecoder() override;
+
+    enum InterpolateMethod
+    {
+        nearest,
+        nearest_valid,
+        interpolate
+    };
+
+    // implements BaseSceneObject interface
+    virtual void set(const map<string, string>& params) override { GribDecoderAttributes::set(params); }
+    virtual void set(const XmlNode& node) override;
+    void set(const GribLoop&, int);
+    // implements Decoder interface
+    void decode() override;
+    void decode1D();  // RV MF
+    void decode2D();
+    void decode(const Transformation&);
+    void decode2D(const Transformation&);
+    void decodeRaster(const Transformation&);
+    void decodePoints();
+    void release() override;
+    void newPoint(const Transformation&, double, double, double, double, double, vector<CustomisedPoint*>&, double);
+    bool verify(const string& where) const;
+    MatrixHandler& direction() override;
+    // Data Interface : info for the layer managment!
+    string layerId() override {
+        decode();
+        return layerId_;
+    }
+    string name() const { return name_; }
+    const DateTime& from() override;
+    const DateTime& to() override;
+
+    string title() const { return title_; }
+
+    static void scale(const string&, double&, double&);
+
+    bool isEarthOblate() const;
+
+    InterpolateMethod interpolateMethod() const {
+        if (magCompare(interpolation_method_, "interpolate"))
+            return interpolate;
+        if (magCompare(interpolation_method_, "nearest"))
+            return nearest;
+        if (magCompare(interpolation_method_, "nearest_valid"))
+            return nearest_valid;
+        return interpolate;
+    }
+    int missingFill() const { return missing_fill_count_; }
+    bool getExpver() const { return expver_; }
+    void version();
+
+
+    // implements Decoder
+    void visit(AnimationRules&) override;
+    void visit(MetaDataCollector&) override;
+    void visit(MagnifierCollector&) override;
+    void visit(ValuesCollector&) override;
+    void visit(Transformation&) override;
+    void visit(MetaDataVisitor&) override;
+    void ask(MetaDataCollector&);
+
+    const DateDescription& timeStamp() override;
+    const LevelDescription& level() override;
+
+    // implements Decoder
+    void visit(TextVisitor&) override;
+
+    PointsHandler& points() {
+        decodePoints();
+        pointsHandlers_.push_back(new PointsHandler(points_));
+        return *(pointsHandlers_.back());
+    }
+    PointsHandler& points(const Transformation& transformation) {
+        decodePoints();
+        pointsHandlers_.push_back(new BoxPointsHandler(points_, transformation, true));
+        return *(pointsHandlers_.back());
+    }
+    PointsHandler& points(const Transformation& transformation, bool all) override {
+        decodePoints();
+        pointsHandlers_.push_back(new BoxPointsHandler(points_, transformation, !all));
+        return *(pointsHandlers_.back());
+    }
+
+    MatrixHandler& matrix() override {
+        // RV MF
+        decode1D();
+        //		decode();
+        matrixHandlers_.push_back(new MatrixHandler(*xComponent_));
+        return *(matrixHandlers_.back());
+    }
+    MatrixHandler& matrix(const Transformation& transformation) override {
+        decode(transformation);
+        matrixHandlers_.push_back(new MatrixHandler(*xComponent_));
+        return *(matrixHandlers_.back());
+    }
+
+    void setPath(const string& path) { file_name_ = path; }
+
+    RasterData& raster(const Transformation& transformation) {
+        decodeRaster(transformation);
+        return raster_;
+    }
+    void customisedPoints(const Transformation& t, const std::set<string>& n, CustomisedPointsList& out,
+                          bool all) override {}
+
+    void customisedPoints(const AutomaticThinningMethod&, const Transformation&, const std::set<string>&,
+                          CustomisedPointsList&) override;
+    void customisedPoints(const BasicThinningMethod&, const Transformation&, const std::set<string>&,
+                          CustomisedPointsList&) override;
+    void customisedPoints(const Transformation& t, CustomisedPointsList& out, double xpts, double ypts, double gap);
+
+
+    virtual grib_handle* open(grib_handle*, bool sendMsg = true);
+    virtual void openField();
+    virtual void openFirstComponent();
+    virtual void openSecondComponent();
+    virtual void openThirdComponent();
+
+
+    grib_handle* id() const {
+        if (!field_)
+            const_cast<GribDecoder*>(this)->decode();
+        return field_;
+    }
+
+    string representation();
+    string projString();
+
+    long getLong(const string&, bool warnIfKeyAbsent = true) const;
+    string getString(const string&, bool warnIfKeyAbsent = true) const;
+    double getDouble(const string&, bool warnIfKeyAbsent = true) const;
+    void setDouble(const string&, double) const;
+
+    string getstring(const string&, bool warnIfKeyAbsent = true, bool cache = true) const;
+
+    void read();
+    void read(const Transformation&);
+    bool id(const string&, const string&) const;
+
+    grib_nearest* nearest_point_handle(bool keep);
+    void nearestGridpoints(double* inlats, double* inlons, double* outlats, double* outlons, double* values,
+                           double* distances, int nb, const string& representation, double missing);
+
+    grib_handle* uHandle(string&);
+    grib_handle* vHandle(string&);
+    grib_handle* cHandle(string&);
+
+    grib_handle* uHandle() const { return field_; }
+    grib_handle* vHandle() const { return component2_; }
+    grib_handle* cHandle() const { return colour_; }
+
+
+    double uComponent(int);
+    double vComponent(int);
+    void uComponent();
+    void vComponent();
+
+
+    Matrix* colour() { return colourComponent_; }
+    Matrix* u() { return xComponent_; }
+    Matrix* v() { return yComponent_; }
+
+    Matrix* colour(Matrix*);
+    Matrix* u(Matrix*);
+    Matrix* v(Matrix*);
+
+
+    grib_handle* handle() const { return field_; }
+    void initInfo() override;
+
+    virtual string getUnits() const override;
+
+protected:
+    //! Method to print string about this class on to a stream of type ostream (virtual).
+    virtual void print(ostream&) const override;
+
+    void handle(grib_handle*);
+
+    mutable double* xValues_;
+    mutable double* yValues_;
+    mutable Matrix* xComponent_;
+    mutable Matrix* yComponent_;
+    mutable Matrix* colourComponent_;
+    mutable RasterData raster_;
+    mutable PointsList points_;
+
+
+    bool thinning_debug_;
+    bool thinning_;
+
+
+    mutable map<string, string> sKeys_;
+    mutable map<string, long> lKeys_;
+    mutable map<string, double> dKeys_;
+
+    int internalIndex_;
+    GribInterpretor* interpretor_;
+    map<double, std::set<double> > positions_;
+
+
+    grib_handle* field_;
+    grib_nearest* nearest_;
+    grib_handle* component2_;
+    grib_handle* colour_;
+    bool directionDone_;
+
+    mutable grib_handle* current_handle_;
+    mutable int current_position_;
+
+    string title_;
+    static int count_;
+    friend class GribInterpretor;
+
+private:
+    //! Copy constructor - No copy allowed
+    GribDecoder(const GribDecoder&);
+    //! Overloaded << operator to copy - No copy allowed
+    GribDecoder& operator=(const GribDecoder&);
+
+    // -- Friends
+    //! Overloaded << operator to call print().
+    friend ostream& operator<<(ostream& s, const GribDecoder& p) {
+        p.print(s);
+        return s;
+    }
+
+    vector<GribEntryDecoder*> entries_;
+    vector<GribEntryDecoder*>::iterator entry_;
+
+
+    Data* current() override;
+    Data* next() override;
+};
+
+
+class GribEntryDecoder : public GribDecoder {
+public:
+    GribEntryDecoder(grib_handle* handle) {
+        field_           = handle;
+        handle1_         = handle;
+        handle2_         = 0;
+        handle3_         = 0;
+        Data::dimension_ = 1;
+        ASSERT(handle);
+    }
+    GribEntryDecoder(grib_handle* handle1, grib_handle* handle2) {
+        field_   = handle1;
+        handle1_ = handle1;
+        handle2_ = handle2;
+        handle3_ = 0;
+
+        Data::dimension_ = 2;
+        ASSERT(handle1);
+        ASSERT(handle2);
+    }
+    GribEntryDecoder(grib_handle* handle1, grib_handle* handle2, grib_handle* handle3) {
+        field_           = handle1;
+        handle1_         = handle1;
+        handle2_         = handle2;
+        handle3_         = handle3;
+        Data::dimension_ = 3;
+        ASSERT(handle1);
+        ASSERT(handle2);
+        ASSERT(handle3);
+    }
+    ~GribEntryDecoder() override {}
+
+    grib_handle* open(grib_handle*, bool sendMsg = true) override;
+
+    void openFirstComponent() override { ASSERT(field_); }
+    void openField() override {
+        ASSERT(field_);
+        current_handle_ = field_;
+    }
+
+    void openSecondComponent() override {
+        ASSERT(handle2_);
+        component2_ = handle2_;
+    }
+    void openThirdComponent() override {
+        // Can Be NULL
+
+        colour_ = handle3_;
+    }
+
+
+protected:
+    grib_handle* handle1_;
+    grib_handle* handle2_;
+    grib_handle* handle3_;
+};
+
+class GribLoop : public GribLoopAttributes, public DataLoop {
+public:
+    GribLoop();
+    virtual ~GribLoop() override;
+
+
+    void set(const map<string, string>& map) override { GribLoopAttributes::set(map); }
+    void set(const XmlNode& node) override { GribLoopAttributes::set(node); }
+
+
+    Data* current() override;
+    bool hasMore() override;
+    void next() override;
+    void setToFirst() override;
+
+
+protected:
+    virtual void print(ostream&) const override;
+    vector<GribDecoder*> gribs_;
+    GribDecoder* currentgrib_;
+    friend class GribDecoder;
+    vector<int>::iterator currentDim_;
+    vector<long int>::iterator currentPos_;
+
+
+    FILE* file_;
+    static map<string, string> ids_;
+    static int index_;
+    int uniqueId_;
+    int counter_;
+
+private:
+    //! Copy constructor - No copy allowed
+    GribLoop(const GribLoop&);
+    //! Overloaded << operator to copy - No copy allowed
+    GribLoop& operator=(const GribLoop&);
+
+    // -- Friends
+    //! Overloaded << operator to call print().
+    friend ostream& operator<<(ostream& s, const GribLoop& p) {
+        p.print(s);
+        return s;
+    }
+};
+
+
+}  // namespace magics
+#endif

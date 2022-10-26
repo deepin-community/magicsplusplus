@@ -1,0 +1,5 @@
+debian/tmp/usr/include/magics usr/include
+# debian/tmp/usr/lib/*/pkgconfig/magics.pc 
+debian/tmp/usr/bin/magicsCompatibilityChecker usr/bin
+debian/tmp/usr/lib/*/cmake
+debian/tmp/usr/lib/*/lib*.so

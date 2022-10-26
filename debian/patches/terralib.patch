@@ -1,0 +1,48 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Add Debian's libterralib, rather than built-in version
+Last-Updated: 2017-12-27
+Forwarded: not-needed
+
+Index: magics++-4.8.0/src/CMakeLists.txt
+===================================================================
+--- magics++-4.8.0.orig/src/CMakeLists.txt
++++ magics++-4.8.0/src/CMakeLists.txt
+@@ -49,7 +49,6 @@ add_subdirectory( web )
+ add_subdirectory( visualisers )
+ add_subdirectory( drivers )
+ add_subdirectory( decoders )
+-add_subdirectory( terralib )
+ add_subdirectory( clipper )
+ add_subdirectory( eckit_readers )
+ 
+@@ -91,7 +90,6 @@ ecbuild_add_library( TARGET    MagPlus
+                         ${qt_srcs}
+                         ${decoders_srcs}
+                         ${clipper_srcs}
+-                        ${terralib_srcs}
+                         ${odb_srcs}
+                         ${api_srcs}
+                      TEMPLATES
+@@ -115,7 +113,6 @@ ecbuild_add_library( TARGET    MagPlus
+                                      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/drivers>
+                                      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/decoders>
+                                      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/visualisers>
+-                                     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/terralib/kernel>
+                                      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/eckit_readers>
+                                      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/web>
+                                      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/drivers/MgQ>
+@@ -188,14 +185,6 @@ if( metview )
+      list(APPEND attributes_include QtDriverAttributes.h)
+    endif()
+ 
+-   install( FILES terralib/kernel/TeProjection.h
+-		  terralib/kernel/TeCoord2D.h
+-		  terralib/kernel/TeDefines.h
+-		  terralib/kernel/TePrecision.h
+-		  terralib/kernel/TeSingleton.h
+-		  terralib/kernel/TeDatum.h
+-		  terralib/kernel/TeUtils.h
+-		  DESTINATION ${INSTALL_INCLUDE_DIR})
+ 
+    install( FILES AutoVector.h       DESTINATION ${INSTALL_INCLUDE_DIR})
+    install( FILES Iterable.h         DESTINATION ${INSTALL_INCLUDE_DIR})

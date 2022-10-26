@@ -1,0 +1,17 @@
+# symlinks, really installed 
+usr/lib/*/libMagPlus.so.3.0.0
+usr/lib/libMagPlusSingle.so.3
+usr/lib/libMagPlus.so
+usr/lib/libMagPlusSingle.so
+usr/lib/libMagPlus.so.3
+usr/lib/libMagPlusDouble.so
+usr/lib/libMagPlusDouble.so.3
+usr/lib/libMagWrapper.a
+usr/lib/pkgconfig/magics.pc
+usr/lib/cmake/magics/magics-config-version.cmake
+usr/lib/cmake/magics/magics-config.cmake exists
+usr/lib/cmake/magics/magics-import.cmake exists
+usr/lib/cmake/magics/magics-targets.cmake exists
+usr/lib/cmake/magics/magics-targets-none.cmake
+usr/lib/cmake/magics/magics-config.cmake.tpls
+
