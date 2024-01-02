@@ -28,6 +28,8 @@
 #include "MagTranslator.h"
 #include "magics.h"
 
+#include "ColourTechniqueAttributes.h"
+
 #include "PaletteColourTechniqueAttributes.h"
 namespace magics {
 
@@ -52,11 +54,13 @@ public:
     virtual const Colour& getMaxColour() const = 0;
     virtual const string& getDirection() const = 0;
     virtual stringarray getColours() const     = 0;
-    virtual ListPolicy getPolicy() const       = 0;
+    virtual ListPolicy getPolicy() const = 0;
+
 };
 
 
-class ColourTechnique : public map<double, ColourInfo> {
+class ColourTechnique : public map<double, ColourInfo>, 
+    public ColourTechniqueAttributes {
 public:
     ColourTechnique();
     virtual ~ColourTechnique();
@@ -75,13 +79,14 @@ public:
     double leftRange(double) const;
     double rightRange(double) const;
 
-    virtual void set(LevelSelection&, LevelSelection&, ColourTable&, int) const {}
+    virtual void set(LevelSelection&, LevelSelection&, ColourTable&, int)  {}
     void prepare(LevelSelection&, LevelSelection&, bool rainbow = false);
 
     void colours(vector<string>&) const;
 
     void visit(LegendVisitor&);
     ListPolicy getPolicy() const { return policy_; }
+
 
 protected:
     //! Method to print string about this class on to a stream of type ostream (virtual).
@@ -91,6 +96,7 @@ protected:
     map<double, pair<double, double> > ranges_;
     double maxLevel_;
 
+    
     ListPolicy policy_;
 
 
@@ -109,7 +115,9 @@ private:
 };
 
 
-class PaletteColourTechnique : public ColourTechnique, public PaletteColourTechniqueAttributes {
+class PaletteColourTechnique : public ColourTechnique, 
+    public PaletteColourTechniqueAttributes
+{
 public:
     PaletteColourTechnique();
     virtual ~PaletteColourTechnique() override;
@@ -119,6 +127,13 @@ public:
 
     void set(const ColourTechniqueInterface&) override;
 
+    virtual void copy(const PaletteColourTechnique&) {
+        PaletteColourTechniqueAttributes::copy(*this);
+        ColourTechniqueAttributes::copy(*this);
+    }
+
+
+
 
     virtual ColourTechnique* clone() const override {
         PaletteColourTechnique* object = new PaletteColourTechnique();
@@ -126,8 +141,11 @@ public:
         return object;
     }
 
+    
+
+
 protected:
-    void set(LevelSelection&, LevelSelection&, ColourTable&, int) const override;
+    void set(LevelSelection&, LevelSelection&, ColourTable&, int)  override;
     //! Method to print string about this class on to a stream of type ostream (virtual).
     virtual void print(ostream&) const override;
 
@@ -143,6 +161,7 @@ private:
         p.print(s);
         return s;
     }
+
 };
 
 

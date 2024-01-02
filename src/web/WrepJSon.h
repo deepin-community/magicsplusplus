@@ -107,6 +107,7 @@ public:
     void eps();
     void basic();
     void data();
+    void cams();
     void profile();
     void tephigram();
     void hodograph();
@@ -125,6 +126,10 @@ public:
     void x_date_values(const Value&);
     void y_date_values(const Value&);
     void clim_step(const Value&);
+    void cams_values(const Value&);
+    void cams_date(const Value&);
+    void cams_time(const Value&);
+    
 
     // tephigram
     void param(const Value&);
@@ -216,7 +221,6 @@ protected:
     double maxClim_;
     double miny_;
     double maxy_;
-    double shift_;
     double missing_;
     double latitude_;
     double longitude_;

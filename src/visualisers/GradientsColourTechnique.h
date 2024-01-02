@@ -38,6 +38,12 @@ public:
     bool accept(const string& node) override { return GradientsColourTechniqueAttributes::accept(node); }
 
     void set(const ColourTechniqueInterface&) override;
+    
+    void copy(const GradientsColourTechnique&) {
+        GradientsColourTechniqueAttributes::copy(*this);
+        ColourTechniqueAttributes::copy(*this);
+    }
+
 
 
     virtual ColourTechnique* clone() const override {
@@ -47,7 +53,7 @@ public:
     }
 
 protected:
-    void set(LevelSelection&, LevelSelection&, ColourTable&, int) const override;
+    void set(LevelSelection&, LevelSelection&, ColourTable&, int)  override;
     //! Method to print string about this class on to a stream of type ostream (virtual).
     virtual void print(ostream&) const override;
 

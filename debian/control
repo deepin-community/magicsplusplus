@@ -3,17 +3,20 @@ Section: science
 Priority: optional
 Maintainer: Alastair McKinstry <mckinstry@debian.org>
 Build-Depends: debhelper-compat  (= 13) , 
+ architecture-is-64-bit,
+ dh-fortran-mod (>= 0.31),
  ecbuild (>= 3.3.0-3),
- gfortran | fortran-compiler, 
  python3-all-dev,
+ libxcb-xkb-dev,
  libhdf5-dev | libhdf5-mpi-dev, 
- libnetcdf-dev, libnetcdf-cxx-legacy-dev,
- libgl1-mesa-dev, libgd-dev, 
- libemos-dev (>=  2:4.3.9), libgeotiff-dev,
+ libnetcdf-dev,
+ libgeotiff-dev,
+ libgl-dev, libgd-dev, 
+ libemos-dev (>=  2:4.3.9),
  libeccodes-dev (>= 2.13.0-3),
  libeccodes-tools,
- libodc-dev [!powerpc !armel !armhf !i386 !mipsel],
- odc [!powerpc !armel !armhf !i386 !mipsel],
+ libodc-dev,
+ odc,
  libemos-bin, 
  libopenjp2-7-dev,
  libaec-dev,
@@ -24,13 +27,12 @@ Build-Depends: debhelper-compat  (= 13) ,
  libxml-parser-perl, 
  ghostscript, 
  zlib1g-dev, 
- libboost-dev | libboost1.74-dev, 
- libproj-dev, 
- qtbase5-dev-tools, 
- qtbase5-dev, 
- qt5-qmake,
+ libboost-dev | libboost1.83-dev, 
+ qt6-base-dev,
+ libqt6core5compat6-dev,
+ libqt6svg6-dev,
  python3-jinja2
-Standards-Version: 4.6.0
+Standards-Version: 4.6.2
 Homepage: https://software.ecmwf.int/wiki/display/MAGP/Magics
 Vcs-Browser: https://salsa.debian.org/science-team/magics.git
 Vcs-Git: https://salsa.debian.org/science-team/magics.git -b debian/latest
@@ -65,7 +67,7 @@ Multi-Arch: same
 Depends: libmagplus3v5 ( = ${binary:Version} ), 
  ${misc:Depends}, ${ecbuild:Depends},
  python3, libmagics++-metview-dev, libterralib-dev, magics++,
- libodc-dev [!powerpc !armel !armhf !i386 !mipsel]
+ libodc-dev [!powerpc !armel !armhf !hppa !i386 !mipsel]
 Recommends: pkg-config
 Description: Development files for ECMWF  plotting software MAGICS++
  Magics++ is the latest generation of the ECMWF's Meteorological plotting

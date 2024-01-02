@@ -151,6 +151,12 @@ void FortranViewNodeWrapper::set(const MagRequest& request)
 		fortranviewnode_->title_ = MagTranslator<string, bool>()(title_value);
 		
 		}
+	if  (request.countValues("SUBPAGE_EXPAND_MODE") ) {
+		string expand_value = request("SUBPAGE_EXPAND_MODE");
+		
+		fortranviewnode_->expand_ = MagTranslator<string, bool>()(expand_value);
+		
+		}
 	
 	
 		string transformation_value = request.countValues("SUBPAGE_MAP_PROJECTION") ?  (string) request("SUBPAGE_MAP_PROJECTION") : "cylindrical";
@@ -301,6 +307,11 @@ static SimpleObjectMaker<Proj4EPSG4326, Transformation> FortranViewNode_subpage_
 static SimpleObjectMaker<Proj4EPSG4326Wrapper, TransformationWrapper> FortranViewNode_subpage_map_projection_EPSG4326_wrapper ("EPSG:4326");
 
 
+#include "Proj4EPSG3035Wrapper.h"
+static SimpleObjectMaker<Proj4EPSG3035, Transformation> FortranViewNode_subpage_map_projection_EPSG3035 ("EPSG:3035");
+static SimpleObjectMaker<Proj4EPSG3035Wrapper, TransformationWrapper> FortranViewNode_subpage_map_projection_EPSG3035_wrapper ("EPSG:3035");
+
+
 #include "Proj4GoodeWrapper.h"
 static SimpleObjectMaker<Proj4Goode, Transformation> FortranViewNode_subpage_map_projection_goode ("goode");
 static SimpleObjectMaker<Proj4GoodeWrapper, TransformationWrapper> FortranViewNode_subpage_map_projection_goode_wrapper ("goode");
@@ -344,11 +355,6 @@ static SimpleObjectMaker<Proj4TPersWrapper, TransformationWrapper> FortranViewNo
 #include "Proj4AutomaticWrapper.h"
 static SimpleObjectMaker<Proj4Automatic, Transformation> FortranViewNode_subpage_map_projection_automatic ("automatic");
 static SimpleObjectMaker<Proj4AutomaticWrapper, TransformationWrapper> FortranViewNode_subpage_map_projection_automatic_wrapper ("automatic");
-
-
-#include "Proj4LambertNorthAtlanticWrapper.h"
-static SimpleObjectMaker<Proj4LambertNorthAtlantic, Transformation> FortranViewNode_subpage_map_projection_lambert_north_atlantic ("lambert_north_atlantic");
-static SimpleObjectMaker<Proj4LambertNorthAtlanticWrapper, TransformationWrapper> FortranViewNode_subpage_map_projection_lambert_north_atlantic_wrapper ("lambert_north_atlantic");
 
 
 #include "Proj4MercatorWrapper.h"

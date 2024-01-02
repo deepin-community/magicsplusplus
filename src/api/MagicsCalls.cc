@@ -42,7 +42,20 @@ const char* MagicsCalls::metainput() {
 const char* MagicsCalls::metanetcdf() {
     return FortranMagics::instance().metanetcdf();
 }
+const char* MagicsCalls::long_parameters() {
+    static string result; 
+    ostringstream os;
+    os << "{";
+    os << "\"grib_field_position\": \"grib_field_large_position\",";
+    os << "\"grib_wind_position_1\": \"grib_wind_large_position_1\",";
+    os << "\"grib_wind_position_2\": \"grib_wind_large_position_2\",";
+    os << "\"grib_wind_position_colour\": \"grib_wind_large_position_colour\"";
+    os << "}";
+    result = os.str();
+    return result.c_str();
+    
 
+}
 const char* MagicsCalls::keep_compatibility() {
     NOTIMP;
 }
@@ -295,7 +308,7 @@ void MagicsCalls::set1c(const std::string& name, const char** data, const int di
     stringarray values;
 
     for (int i = 0; i < dim; i++) {
-        
+        ASSERT(data[i]);
         values.push_back(data[i]);
     }
 
@@ -385,6 +398,11 @@ void MagicsCalls::seti(const std::string& name, int value) {
     ParameterManager::set(name, value);
 }
 
+void MagicsCalls::setli(const std::string& name, unsigned long long value) {
+    // if (CompatibilityHelper::check(name, value))
+    //     return;
+    ParameterManager::set(name, value);
+}
 
 void MagicsCalls::set1i(const std::string& name, const std::vector<int>& data) {
     set1i(name, data.data(), data.size());
@@ -438,7 +456,7 @@ void MagicsCalls::set3i(const std::string& name, const int* data, const int dim1
 void MagicsCalls::enqr(const std::string& n, double* value) {
     std::string name = n;
 
-    
+    ASSERT(value);
 
     vector<string> special;
     special.push_back("subpage_x_position");
@@ -468,7 +486,7 @@ void MagicsCalls::enqr(const std::string& n, double* value) {
 }
 
 void MagicsCalls::enqi(const std::string& name, int* value) {
-   
+    ASSERT(value);
 
     int magics;
     ParameterManager::get(name, magics);
@@ -476,7 +494,7 @@ void MagicsCalls::enqi(const std::string& name, int* value) {
 }
 
 void MagicsCalls::enqc(const std::string& name, char* value) {
-    
+    ASSERT(value);
 
     string magics;
 

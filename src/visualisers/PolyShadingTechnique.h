@@ -144,6 +144,7 @@ struct LegendEntryBuilder {
         if (first_) {
             first_ = false;
             entry->first();
+           
         }
         for (vector<double>::iterator val = legend_.values_list_.begin(); val != legend_.values_list_.end(); ++val) {
             if (min <= *val && *val < max) {

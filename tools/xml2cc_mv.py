@@ -17,6 +17,7 @@ class ObjectHandler(ContentHandler):
     basic = {
         "bool": "getBool",
         "int": "getInt",
+        "unsigned long long": "getULong",
         "float": "getDouble",
         "string": "getString",
         "stringarray": "getStringArray",
@@ -128,6 +129,7 @@ class ObjectHandler(ContentHandler):
                 "Justification",
                 "AxisAutomaticSetting",
                 "ListPolicy",
+                "ColourListPolicy",
                 "Position",
                 "Hemisphere",
                 "DisplayType",

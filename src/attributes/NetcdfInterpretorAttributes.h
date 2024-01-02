@@ -83,6 +83,8 @@ public:
 	string geo_y_convention_;
 	string aux_y_;
 	string primary_index_;
+	string interpretation_;
+	bool ignore_missing_;
 	 
 
 private:

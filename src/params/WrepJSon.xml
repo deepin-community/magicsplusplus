@@ -84,6 +84,20 @@ does it submit to any jurisdiction.
 			name="wrepjson_keyword">
 			<documentation>if several eps data are put in the same json object, give the keyowrd to find them</documentation>
 		</parameter>
+		<parameter member="cams_keyword"
+			to="string"
+			default="uv_index"
+			from="string"
+			name="wrepjson_cams_keyword">
+			<documentation>Special for cams</documentation>
+		</parameter>
+		<parameter member="cams_y_keyword"
+			to="string"
+			default="uv_index"
+			from="string"
+			name="wrepjson_cams_y_keyword">
+			<documentation>Special for cams</documentation>
+		</parameter>
 		<parameter member="station_name"
 			to="string"
 			default=""
@@ -161,6 +175,13 @@ does it submit to any jurisdiction.
 			name="wrepjson_y_percentage">
 			<documentation>percentage of the range to add to compute automatic minmax of axis.</documentation>
 		</parameter>
+		<parameter member="shift"
+			to="float"
+			default="12"
+			from="float"
+			name="wrepjson_x_shift">
+			<documentation>value to add to the range to compute automatic max of axis.</documentation>
+		</parameter>
 		<parameter member="correction"
 			to="bool"
 			default="off"
@@ -214,6 +235,13 @@ does it submit to any jurisdiction.
 			name="wrepjson_hodograph_member"
 			visible='off'>
 			<documentation>slecet only one member</documentation>
+		</parameter>
+		<parameter member="y_axis_value"
+			to="float"
+			default="1"
+			from="float"
+			name="wrepjson_y_axis_value">
+			<documentation>Used in the visibility product to define the y value</documentation>
 		</parameter>
 	</class>
 </magics>

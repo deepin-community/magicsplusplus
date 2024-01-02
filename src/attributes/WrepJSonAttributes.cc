@@ -35,6 +35,8 @@ WrepJSonAttributes::WrepJSonAttributes():
 	plumes_(ParameterManager::getDouble("wrepjson_plumes_interval")),
 	information_(ParameterManager::getBool("wrepjson_information")),
 	keyword_(ParameterManager::getString("wrepjson_keyword")),
+	cams_keyword_(ParameterManager::getString("wrepjson_cams_keyword")),
+	cams_y_keyword_(ParameterManager::getString("wrepjson_cams_y_keyword")),
 	station_name_(ParameterManager::getString("wrepjson_station_name")),
 	param_(ParameterManager::getString("wrepjson_parameter")),
 	param_scaling_factor_(ParameterManager::getDouble("wrepjson_parameter_scaling_factor")),
@@ -46,13 +48,15 @@ WrepJSonAttributes::WrepJSonAttributes():
 	threshold_(ParameterManager::getDouble("wrepjson_y_axis_threshold")),
 	y_max_threshold_(ParameterManager::getDouble("wrepjson_y_max_threshold")),
 	y_percent_(ParameterManager::getDouble("wrepjson_y_percentage")),
+	shift_(ParameterManager::getDouble("wrepjson_x_shift")),
 	correction_(ParameterManager::getBool("wrepjson_temperature_correction")),
 	missing_value_(ParameterManager::getDouble("wrepjson_missing_value")),
 	ignore_keys_(ParameterManager::getStringArray("wrepjson_ignore_keys")),
 	profile_quantile_(ParameterManager::getString("wrepjson_profile_quantile")),
 	hodograph_grid_(ParameterManager::getBool("wrepjson_hodograph_grid")),
 	hodograph_tephi_(ParameterManager::getBool("wrepjson_hodograph_tephi")),
-	hodograph_member_(ParameterManager::getInt("wrepjson_hodograph_member"))
+	hodograph_member_(ParameterManager::getInt("wrepjson_hodograph_member")),
+	y_axis_value_(ParameterManager::getDouble("wrepjson_y_axis_value"))
 	
 	
 {
@@ -81,6 +85,8 @@ void WrepJSonAttributes::set(const std::map<string, string>& params)
 	setAttribute(prefix, "wrepjson_plumes_interval", plumes_, params);
 	setAttribute(prefix, "wrepjson_information", information_, params);
 	setAttribute(prefix, "wrepjson_keyword", keyword_, params);
+	setAttribute(prefix, "wrepjson_cams_keyword", cams_keyword_, params);
+	setAttribute(prefix, "wrepjson_cams_y_keyword", cams_y_keyword_, params);
 	setAttribute(prefix, "wrepjson_station_name", station_name_, params);
 	setAttribute(prefix, "wrepjson_parameter", param_, params);
 	setAttribute(prefix, "wrepjson_parameter_scaling_factor", param_scaling_factor_, params);
@@ -92,6 +98,7 @@ void WrepJSonAttributes::set(const std::map<string, string>& params)
 	setAttribute(prefix, "wrepjson_y_axis_threshold", threshold_, params);
 	setAttribute(prefix, "wrepjson_y_max_threshold", y_max_threshold_, params);
 	setAttribute(prefix, "wrepjson_y_percentage", y_percent_, params);
+	setAttribute(prefix, "wrepjson_x_shift", shift_, params);
 	setAttribute(prefix, "wrepjson_temperature_correction", correction_, params);
 	setAttribute(prefix, "wrepjson_missing_value", missing_value_, params);
 	setAttribute(prefix, "wrepjson_ignore_keys", ignore_keys_, params);
@@ -99,6 +106,7 @@ void WrepJSonAttributes::set(const std::map<string, string>& params)
 	setAttribute(prefix, "wrepjson_hodograph_grid", hodograph_grid_, params);
 	setAttribute(prefix, "wrepjson_hodograph_tephi", hodograph_tephi_, params);
 	setAttribute(prefix, "wrepjson_hodograph_member", hodograph_member_, params);
+	setAttribute(prefix, "wrepjson_y_axis_value", y_axis_value_, params);
 	
 	
 }
@@ -115,6 +123,8 @@ void WrepJSonAttributes::copy(const WrepJSonAttributes& other)
 	plumes_ = other.plumes_;
 	information_ = other.information_;
 	keyword_ = other.keyword_;
+	cams_keyword_ = other.cams_keyword_;
+	cams_y_keyword_ = other.cams_y_keyword_;
 	station_name_ = other.station_name_;
 	param_ = other.param_;
 	param_scaling_factor_ = other.param_scaling_factor_;
@@ -126,6 +136,7 @@ void WrepJSonAttributes::copy(const WrepJSonAttributes& other)
 	threshold_ = other.threshold_;
 	y_max_threshold_ = other.y_max_threshold_;
 	y_percent_ = other.y_percent_;
+	shift_ = other.shift_;
 	correction_ = other.correction_;
 	missing_value_ = other.missing_value_;
 	ignore_keys_ = other.ignore_keys_;
@@ -133,6 +144,7 @@ void WrepJSonAttributes::copy(const WrepJSonAttributes& other)
 	hodograph_grid_ = other.hodograph_grid_;
 	hodograph_tephi_ = other.hodograph_tephi_;
 	hodograph_member_ = other.hodograph_member_;
+	y_axis_value_ = other.y_axis_value_;
 	
 }
 
@@ -181,6 +193,8 @@ void WrepJSonAttributes::print(ostream& out)  const
 	out << " plumes = " <<  plumes_;
 	out << " information = " <<  information_;
 	out << " keyword = " <<  keyword_;
+	out << " cams_keyword = " <<  cams_keyword_;
+	out << " cams_y_keyword = " <<  cams_y_keyword_;
 	out << " station_name = " <<  station_name_;
 	out << " param = " <<  param_;
 	out << " param_scaling_factor = " <<  param_scaling_factor_;
@@ -192,6 +206,7 @@ void WrepJSonAttributes::print(ostream& out)  const
 	out << " threshold = " <<  threshold_;
 	out << " y_max_threshold = " <<  y_max_threshold_;
 	out << " y_percent = " <<  y_percent_;
+	out << " shift = " <<  shift_;
 	out << " correction = " <<  correction_;
 	out << " missing_value = " <<  missing_value_;
 	out << " ignore_keys = " <<  ignore_keys_;
@@ -199,6 +214,7 @@ void WrepJSonAttributes::print(ostream& out)  const
 	out << " hodograph_grid = " <<  hodograph_grid_;
 	out << " hodograph_tephi = " <<  hodograph_tephi_;
 	out << " hodograph_member = " <<  hodograph_member_;
+	out << " y_axis_value = " <<  y_axis_value_;
 	
 	out << "]" << "\n";
 }
@@ -226,6 +242,10 @@ void WrepJSonAttributes::toxml(ostream& out)  const
 	niceprint(out,information_);
 	out << ", \"wrepjson_keyword\":";
 	niceprint(out,keyword_);
+	out << ", \"wrepjson_cams_keyword\":";
+	niceprint(out,cams_keyword_);
+	out << ", \"wrepjson_cams_y_keyword\":";
+	niceprint(out,cams_y_keyword_);
 	out << ", \"wrepjson_station_name\":";
 	niceprint(out,station_name_);
 	out << ", \"wrepjson_parameter\":";
@@ -248,6 +268,8 @@ void WrepJSonAttributes::toxml(ostream& out)  const
 	niceprint(out,y_max_threshold_);
 	out << ", \"wrepjson_y_percentage\":";
 	niceprint(out,y_percent_);
+	out << ", \"wrepjson_x_shift\":";
+	niceprint(out,shift_);
 	out << ", \"wrepjson_temperature_correction\":";
 	niceprint(out,correction_);
 	out << ", \"wrepjson_missing_value\":";
@@ -262,6 +284,8 @@ void WrepJSonAttributes::toxml(ostream& out)  const
 	niceprint(out,hodograph_tephi_);
 	out << ", \"wrepjson_hodograph_member\":";
 	niceprint(out,hodograph_member_);
+	out << ", \"wrepjson_y_axis_value\":";
+	niceprint(out,y_axis_value_);
 	
 }
 
@@ -275,6 +299,8 @@ static MagicsParameter<string> wrepjson_key("wrepjson_key", "");
 static MagicsParameter<double> wrepjson_plumes_interval("wrepjson_plumes_interval", 1);
 static MagicsParameter<string> wrepjson_information("wrepjson_information", "on");
 static MagicsParameter<string> wrepjson_keyword("wrepjson_keyword", "");
+static MagicsParameter<string> wrepjson_cams_keyword("wrepjson_cams_keyword", "uv_index");
+static MagicsParameter<string> wrepjson_cams_y_keyword("wrepjson_cams_y_keyword", "uv_index");
 static MagicsParameter<string> wrepjson_station_name("wrepjson_station_name", "");
 static MagicsParameter<string> wrepjson_parameter("wrepjson_parameter", "1");
 static MagicsParameter<double> wrepjson_parameter_scaling_factor("wrepjson_parameter_scaling_factor", 1);
@@ -286,6 +312,7 @@ static MagicsParameter<double> wrepjson_y_axis_percentile("wrepjson_y_axis_perce
 static MagicsParameter<double> wrepjson_y_axis_threshold("wrepjson_y_axis_threshold", 50);
 static MagicsParameter<double> wrepjson_y_max_threshold("wrepjson_y_max_threshold", INT_MAX);
 static MagicsParameter<double> wrepjson_y_percentage("wrepjson_y_percentage", 0.01);
+static MagicsParameter<double> wrepjson_x_shift("wrepjson_x_shift", 12);
 static MagicsParameter<string> wrepjson_temperature_correction("wrepjson_temperature_correction", "off");
 static MagicsParameter<double> wrepjson_missing_value("wrepjson_missing_value", -9999);
 static MagicsParameter<stringarray> wrepjson_ignore_keys("wrepjson_ignore_keys", stringarray());
@@ -293,3 +320,4 @@ static MagicsParameter<string> wrepjson_profile_quantile("wrepjson_profile_quant
 static MagicsParameter<string> wrepjson_hodograph_grid("wrepjson_hodograph_grid", "off");
 static MagicsParameter<string> wrepjson_hodograph_tephi("wrepjson_hodograph_tephi", "off");
 static MagicsParameter<int> wrepjson_hodograph_member("wrepjson_hodograph_member", -1);
+static MagicsParameter<double> wrepjson_y_axis_value("wrepjson_y_axis_value", 1);

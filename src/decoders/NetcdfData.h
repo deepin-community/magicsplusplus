@@ -47,8 +47,8 @@ public:
 
 class NoSuchNetcdfFile : public MagicsException {
 public:
-    NoSuchNetcdfFile(const string& file) :
-        MagicsException("Netcdf MagException: The file " + file + " does not exist or is not a valid netcdf file") {
+    NoSuchNetcdfFile(const string& file, const string& why) :
+        MagicsException("Netcdf MagException: Cannot open " + file + ": " + why) {
         MagLog::error() << what() << "\n";
     }
 };
@@ -387,7 +387,7 @@ public:
 
     double getMissing(const string&, const string&);
 
-    string detect(const string& var, const string& type) const;
+    string detect(const string& var, const string& type, bool use_cache = true) const;
 
 
     template <class T>
@@ -476,6 +476,8 @@ public:
     }
 
     map<string, NetAttribute> getAttributes() { return attributes_; }
+    void ignoreDimension(const string& dim) { ignoredDimensions_.push_back(dim); }
+    void interpretDimension(const string&) { } //std::remove( ignoredDimensions_.begin(), ignoredDimensions_.end(), dim ); }
 
 
 protected:
@@ -485,6 +487,8 @@ protected:
     map<string, NetVariable> dataset_;
     map<string, NetAttribute> attributes_;
     double missing_;
+    mutable map<string, string> detected_;
+    vector<string> ignoredDimensions_; 
 
 private:
     int file_;
