@@ -65,6 +65,9 @@ public:
     virtual void set(const int&);
     virtual void get(int&) const;
 
+    virtual void set(const unsigned long long&);
+    virtual void get(unsigned long long&) const;
+
     virtual void set(const magvector<int>&);
     virtual void get(magvector<int>&) const;
 
@@ -90,6 +93,9 @@ public:
     virtual void set(const ListPolicy&);
     virtual void get(ListPolicy&) const;
 
+    virtual void set(const ColourListPolicy&);
+    virtual void get(ColourListPolicy&) const;
+
     virtual void set(const AxisAutomaticSetting&);
     virtual void get(AxisAutomaticSetting&) const;
 
@@ -101,6 +107,8 @@ public:
 
     string getType(const string&) const;
     string getType(const int&) const;
+    string getType(const unsigned long long&) const;
+    string getType(const unsigned int&) const;
     string getType(const double&) const;
     string getType(const magvector<string>&) const;
     string getType(const magvector<int>&) const;
@@ -108,6 +116,7 @@ public:
     string getType(const magvector<double>&) const;
 
     string getType(const ListPolicy&) const;
+    string getType(const ColourListPolicy&) const;
     string getType(const LineStyle&) const;
     string getType(const AxisAutomaticSetting&) const;
     string getType(const Justification&) const;
@@ -126,6 +135,9 @@ public:
 
     static ListPolicy listPolicy(const std::string&);
     static const std::string& listPolicy(const ListPolicy&);
+    
+    static ColourListPolicy colourListPolicy(const std::string&);
+    static const std::string& colourListPolicy(const ColourListPolicy&);
 
     static AxisAutomaticSetting axisAutomaticSetting(const std::string&);
     static const std::string& axisAutomaticSetting(const AxisAutomaticSetting&);

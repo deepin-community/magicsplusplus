@@ -188,7 +188,7 @@ public:
 
     virtual bool fast_reproject(double& x, double& y) const { return true; }
 
-    virtual double patchDistance(double) const { NOTIMP; }
+    virtual double patchDistance(double x) const { return x; }
 
     virtual PaperPoint operator()(const PaperPoint& xy) const { return xy; }
     virtual void operator()(const UserPoint& geo, Polyline& out) const;
@@ -309,6 +309,11 @@ public:
     double distance(const UserPoint&, const UserPoint&) const;
     string name() const { return name_; }
 
+    void setOutputDimension(double width, double height) { 
+        outputWidth_ = width; 
+        outputHeight_ = height;
+    }
+
 protected:
     virtual void print(ostream&) const;
 
@@ -354,6 +359,9 @@ protected:
     int zoomLevel_;
     double unit_;
     double unitEpsilon_;
+
+    double outputWidth_;
+    double outputHeight_;
 
 private:
     // No copy allowed

@@ -30,9 +30,11 @@ using namespace magics;
 
 CountSelectionType::CountSelectionType() {}
 
+#define MINSET(v) !same(v, -1.0e+21)
+#define MAXSET(v) !same(v, +1.0e+21)
 
-void CountSelectionType::calculate(double min, double max, bool) {
-    clear();
+void CountSelectionType::calculate(double min, double max, bool shading) {
+clear();
     double maxi = (max_ > 1000000000) ? max : max_;
     double mini = (min_ < -1000000000) ? min : min_;
     int i       = 0;
@@ -160,7 +162,6 @@ void CountSelectionType::calculate(double min, double max, bool) {
 
     MagLog::debug() << level.str() << endl;
 }
-
 
 CountSelectionType::~CountSelectionType() {}
 

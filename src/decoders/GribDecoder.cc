@@ -751,24 +751,62 @@ void GribDecoder::decode2D(const Transformation&) {
 }
 
 void GribDecoder::openField() {
-    current_position_ = field_position_;
+    
+    // current_position_ = (large_field_position_) ? large_field_position_ : field_position_;
+    current_position_ =  field_position_;
+    current_file_name_ =  file_name_;
+
     field_            = open(field_);
 }
 
 void GribDecoder::openFirstComponent() {
     current_position_ = position_1_;
+     
+    if (first_file_name_ == "grib_input_file_name") {
+        current_file_name_= file_name_;
+    }
+    else {
+        current_file_name_= first_file_name_;
+    }
 
-    field_ = open(field_);
+    MagLog::debug() << "received-> " << current_position_ << " from file " << current_file_name_ <<endl;
+    field_       = open(NULL, false);
+
 }
 
 void GribDecoder::openSecondComponent() {
-    current_position_ = position_2_;
-    component2_       = open(component2_);
+    
+
+    if (second_file_name_ == "grib_input_file_name") {
+        current_position_ = ( position_2_ == -1 ) ? 2 : position_2_;
+        current_file_name_= file_name_;
+    }
+    else {
+        current_position_ = ( position_2_ == -1 ) ? 1 : position_2_;
+        current_file_name_= second_file_name_;
+    }
+
+    MagLog::debug() << "current_position_-> " << current_position_ << " from file " << current_file_name_ <<endl;
+    
+
+    component2_       = open(component2_, false);
 }
 
 void GribDecoder::openThirdComponent() {
-    current_position_ = colour_position_;
-    colour_           = open(colour_, false);
+    MagLog::debug() << "received for colour -> " << colour_position_ << " from file " << colour_file_name_ <<endl;
+
+     if (colour_file_name_ == "grib_input_file_name") {
+        current_position_  = ( colour_position_ == -1 ) ? 3 : colour_position_;
+        current_file_name_ = file_name_;
+    }
+    else {
+        current_position_ = ( colour_position_ == -1 ) ? 1 : colour_position_;
+        current_file_name_= colour_file_name_;
+    }
+    MagLog::debug() << "COLOUR current_position_-> " << current_position_ << " from file " << current_file_name_ <<endl;
+
+    if (current_file_name_.size() )
+        colour_ = open(colour_, false);
 }
 
 
@@ -782,17 +820,18 @@ grib_handle* GribDecoder::open(grib_handle* grib, bool sendmsg) {
     }
 
 
-    FILE* file = fopen(file_name_.c_str(), "rb");
-
+    FILE* file = fopen(current_file_name_.c_str(), "rb");
+    
     if (!file) {
         if (MagicsGlobal::strict()) {
-            throw CannotOpenFile(file_name_);
+            throw CannotOpenFile(current_file_name_);
         }
 
         valid_ = false;
-        MagLog::error() << "ERROR: unable to open file '" << file_name_ << "': " << MagicsException::syserror() << endl;
+        MagLog::error() << "ERROR: unable to open file '" << current_file_name_ << "': " << MagicsException::syserror() << endl;
         return 0;
     }
+
 
     if (loop_) {
         grib_context* context = grib_context_get_default();
@@ -816,8 +855,8 @@ grib_handle* GribDecoder::open(grib_handle* grib, bool sendmsg) {
     if (!handle) {
         if (sendmsg) {
             ostringstream error;
-            error << "cannot access position [" << current_position_ << " in " << file_name_ << "]" << std::endl;
-            MagLog::error() << "cannot access position [" << current_position_ << " in " << file_name_ << "]"
+            error << "cannot access position [" << current_position_ << " in " << current_file_name_ << "]" << std::endl;
+            MagLog::error() << "cannot access position [" << current_position_ << " in " << current_file_name_ << "]"
                             << std::endl;
             MagLog::broadcast();
             valid_ = false;
@@ -1638,6 +1677,10 @@ string GribDecoder::representation() {
     current_handle_ = field_;
     // Now warning, no caching
     string proj =  getstring("projTargetString", false, false);
+    // Here if proj contains latlong we ignore the setting . 
+
+    if (proj.find("longlat") != std::string::npos) 
+        proj = "";
 
     return (proj.size()) ? "proj" : grid;
 }
@@ -1843,7 +1886,7 @@ void GribDecoder::decode(const Transformation& transformation) {
 
     name_    = helper.get("grib" + id_, "shortName") + "-" + helper.get("grib" + id_, "level");
     name_    = iconName_;
-    layerId_ = name_ + file_name_;
+    layerId_ = name_ + current_file_name_;
     from_    = DateTime(helper.get("grib" + id_, "start-date"));
     to_      = DateTime(helper.get("grib" + id_, "end-date"));
 }
@@ -1881,7 +1924,7 @@ void GribDecoder::decode() {
 
     name_    = helper.get("grib" + id_, "shortName") + "-" + helper.get("grib" + id_, "level");
     name_    = iconName_;
-    layerId_ = name_ + file_name_;
+    layerId_ = name_ + current_file_name_;
     try {
         from_ = DateTime(helper.get("grib" + id_, "start-date"));
         to_   = DateTime(helper.get("grib" + id_, "end-date"));
@@ -1931,13 +1974,13 @@ void GribDecoder::initInfo() {
         setInfo("_datatype", "GRIB");
 
         char buf[1024];
-        int count = readlink(file_name_.c_str(), buf, sizeof(buf));
+        int count = readlink(current_file_name_.c_str(), buf, sizeof(buf));
         if (count > 0) {
             buf[count] = '\0';
             setInfo("path", string(buf));
         }
         else {
-            setInfo("path", file_name_);
+            setInfo("path", current_file_name_);
         }
         setInfo("MV_Format", "GRIB");
     }
@@ -2455,7 +2498,9 @@ void GribDecoder::uComponent() {
     string name;
     grib_handle* handle = uHandle(name);
 
+
     grib_get_size(handle, "values", &nb);
+
     xValues_ = new double[nb];
     grib_get_double_array(handle, "values", xValues_, &nb);
 }

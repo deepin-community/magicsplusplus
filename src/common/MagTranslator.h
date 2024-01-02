@@ -131,6 +131,29 @@ public:
 };
 
 template <>
+class MagTranslator<string, unsigned long long> {
+public:
+    int operator()(const string& value) { return atoll(value.c_str()); }
+    int magics(const string& param) {
+        int from;
+        ParameterManager::get(param, from);
+        return from;
+    }
+};
+
+
+template <>
+class MagTranslator<unsigned long long, unsigned long long> {
+public:
+    int operator()(unsigned long long& value) { return value; }
+    int magics(const string& param) {
+        unsigned long long from;
+        ParameterManager::get(param, from);
+        return from;
+    }
+};
+
+template <>
 class MagTranslator<int, int> {
 public:
     int operator()(int value) { return value; }
@@ -381,6 +404,16 @@ class MagTranslator<string, magics::ListPolicy> {
 public:
     magics::ListPolicy operator()(const string& s) { return BaseParameter::listPolicy(lowerCase(s)); }
     magics::ListPolicy magics(const string& param) {
+        string from;
+        ParameterManager::get(param, from);
+        return (*this)(from);
+    }
+};
+template <>
+class MagTranslator<string, magics::ColourListPolicy> {
+public:
+    magics::ColourListPolicy operator()(const string& s) { return BaseParameter::colourListPolicy(lowerCase(s)); }
+    magics::ColourListPolicy magics(const string& param) {
         string from;
         ParameterManager::get(param, from);
         return (*this)(from);

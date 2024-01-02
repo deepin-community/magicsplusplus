@@ -53,14 +53,14 @@ void TypedAccessor<F, T>::operator()(vector<T>& to, vector<size_t>& start, vecto
     std::transform(from.begin(), from.begin() + to.size(), to.begin(), Convertor<F, T>(var));
     // for (auto x = start.begin(); x != start.end(); ++x) {   cout << "start " << *x << endl; }
     // for (auto x = edges.begin(); x != edges.end(); ++x) {   cout << "edges " << *x << endl; }
-    
+
 }
 
 template <class F, class T>
 void TypedAccessor<F, T>::get(vector<F>& from, vector<size_t>& start, vector<size_t>& edges, NetVariable& var) const {
     var.get(&from.front(), start, edges);
-    
-   
+
+
 }
 
 Netcdf::Netcdf(const string& path, const string& method) : file_(-1) {
@@ -68,7 +68,7 @@ Netcdf::Netcdf(const string& path, const string& method) : file_(-1) {
 
     if (status != NC_NOERR) {
         fprintf(stderr, "ERROR while opening NetCDF file - %s\n", nc_strerror(status));
-        throw NoSuchNetcdfFile(path);
+        throw NoSuchNetcdfFile(path, nc_strerror(status));
     }
 
     int num_var;
@@ -157,11 +157,11 @@ int NetDimension::index(const string& val) {
 }
 
 int NetDimension::value(const string& val) {
-    
+
     if (variable_ != -1) {
         // int index = Index::get(variable_->type(), val, variable_->values(), variable_->num_vals());
         NetVariable var(name_, variable_, parent_, "index");
-    
+
         return var.find(val);
     }
 
@@ -393,6 +393,7 @@ double NetVariable::getDefaultMissing() {
         case NC_UINT64: return NC_FILL_UINT64; break;
         case NC_FLOAT: return NC_FILL_FLOAT; break;
         case NC_DOUBLE: return NC_FILL_DOUBLE; break;
+        case NC_STRING: return NC_FILL_DOUBLE; break;
     }
 
     MagLog::warning() << "NetVariable: No default missing value defined for " << nc_type_to_name(t) << std::endl;
@@ -401,7 +402,17 @@ double NetVariable::getDefaultMissing() {
 }
 
 
-string Netcdf::detect(const string& var, const string& type) const {
+string Netcdf::detect(const string& var, const string& type, bool use_cache) const {
+
+    if ( std::find(ignoredDimensions_.begin(), ignoredDimensions_.end(), type) != ignoredDimensions_.end() )
+    // Here we force to ignore the dimension type
+        return "";
+    if ( use_cache ) {
+        auto cache = detected_.find(var);
+        if ( cache != detected_.end() )
+            return cache->second;
+    }
+
     NetVariable variable      = getVariable(var);
     vector<string> dimensions = variable.dimensions();
 
@@ -421,11 +432,13 @@ string Netcdf::detect(const string& var, const string& type) const {
                 string val = value.substr(0, v->size());
 
                 if (v->compare(val) == 0) {
+                    detected_.insert(make_pair(var, *dim));
                     return *dim;
                 }
             }
         }
     }
+    detected_.insert(make_pair(var, ""));
     return "";
 }
 

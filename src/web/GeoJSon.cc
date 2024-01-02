@@ -92,9 +92,9 @@ public:
         }
     }
     vector<GeoObject*> objects_;
+    string value_;
     virtual GeoObject* push_back(GeoObject* o) {
         objects_.push_back(o);
-
         o->parent_ = this;
         return o;
     }
@@ -133,6 +133,8 @@ public:
     bool detectFeature() { return true; }
 
     virtual ~GeoFeature() {}
+
+    
 
     void boundingBox(double& min, double& max) {
         min = 900000;
@@ -211,11 +213,9 @@ public:
             while (lon_ > max)
                 lon_ -= 360;
         }
-
-
         UserPoint* point =
-            new UserPoint(lon_, lat_, tonumber(getProperty("value", "0")), false, false, getProperty("name"));
-
+            new UserPoint(lon_, lat_, tonumber(getProperty(value_, "0")), false, false, getProperty("name"));
+        
         out.push_back(point);
     }
     void shift(PointsList& out, double value) {
@@ -226,15 +226,25 @@ public:
     }
 
     void set(const std::set<string>& needs, CustomisedPoint& point) {
+        if (value_ == "value") {
+         point.type("mosmix");
+    }
+           
+        else 
+             point.type(value_);
         for (std::set<string>::iterator need = needs.begin(); need != needs.end(); ++need) {
+            
             string value = getProperty(*need);
+            
             if (value.empty())
                 continue;
             point.insert(make_pair(*need, tonumber(value)));
         }
+        
     }
 
     void create(const std::set<string>& needs, CustomisedPointsList& out) {
+       
         CustomisedPoint* point = new CustomisedPoint(lon_, lat_, getProperty("name"));
         set(needs, *point);
         out.push_back(point);
@@ -267,7 +277,7 @@ public:
     }
     vector<vector<pair<double, double> > > lines_;
     void create(PointsList& out, const string& ref) {
-        double value = tonumber(getProperty("value", "0"));
+        double value = tonumber(getProperty(value_, "0"));
         string name  = getProperty("name");
         for (vector<vector<pair<double, double> > >::iterator line = lines_.begin(); line != lines_.end(); ++line) {
             for (vector<pair<double, double> >::iterator point = line->begin(); point != line->end(); ++point) {
@@ -278,7 +288,7 @@ public:
         }
     }
     void shift(PointsList& out) {
-        double value = tonumber(getProperty("value", "0"));
+        double value = tonumber(getProperty(value_, "0"));
         string name  = getProperty("name");
         for (vector<vector<pair<double, double> > >::iterator line = lines_.begin(); line != lines_.end(); ++line) {
             for (vector<pair<double, double> >::iterator point = line->begin(); point != line->end(); ++point) {
@@ -287,6 +297,48 @@ public:
             }
             out.push_back(new UserPoint(0, 0, 0, true));
         }
+    }
+};
+
+
+class LineString : public GeoObject {
+public:
+    LineString() {
+        ostringstream n;
+        n << "GeoPoint_" << index_;
+        name_ = n.str();
+    }
+    virtual ~LineString() {}
+    virtual void decode(const Value& value) {
+            ValueList line = value.get_value<ValueList>();
+            for (unsigned int pt = 0; pt < line.size(); pt++) {
+                ValueList point = line[pt].get_value<ValueList>();
+                line_.push_back(make_pair(point[0].get_value<double>(), point[1].get_value<double>()));
+            }
+        
+        
+        
+    }
+    vector<pair<double, double> > line_;
+    void create(PointsList& out, const string& ref) {
+        double value = tonumber(getProperty("value", "0"));
+        string name  = getProperty("name", "");
+        
+            for (vector<pair<double, double> >::iterator point = line_.begin(); point != line_.end(); ++point) {
+                UserPoint* upoint = new UserPoint(point->first, point->second, value, false, false, name);
+                out.push_back(upoint);
+            }
+            out.push_back(new UserPoint(0, 0, 0, true));
+    }
+    void shift(PointsList& out) {
+        double value = tonumber(getProperty("value", "0"));
+        string name  = getProperty("name");
+            for (vector<pair<double, double> >::iterator point = line_.begin(); point != line_.end(); ++point) {
+                UserPoint* upoint = new UserPoint(point->first, point->second, value, false, false, name);
+                out.push_back(upoint);
+            }
+            out.push_back(new UserPoint(0, 0, 0, true));
+            
     }
 };
 
@@ -396,6 +448,7 @@ static SimpleObjectMaker<GeoPoint, GeoObject> Point("Point");
 static SimpleObjectMaker<GeoFeature, GeoObject> FeatureCollection("FeatureCollection");
 static SimpleObjectMaker<GeoObject> Feature("Feature");
 static SimpleObjectMaker<MultiLineString, GeoObject> MultiLineString("MultiLineString");
+static SimpleObjectMaker<LineString, GeoObject> LineString("LineString");
 static SimpleObjectMaker<MultiPolygon, GeoObject> MultiPolygon("MultiPolygon");
 static SimpleObjectMaker<MagPolygon, GeoObject> MagPolygon("Polygon");
 
@@ -456,6 +509,7 @@ void GeoJSon::features(const Value& value) {
     }
 }
 void GeoJSon::geometry(const Value& value) {
+    
     dig(value);
 }
 
@@ -472,19 +526,20 @@ void GeoJSon::dig(const Value& value) {
 
     // Find the type :
     string type = find(object, "type");
-
+    
     GeoObject* previous = current_;
     if (type != "") {
         GeoObject* current = SimpleObjectMaker<GeoObject>::create(type);
+        current->value_ = value_;
         previous           = current_;
         current_           = (current_) ? current_->push_back(current) : current;
+        current_           = current;
 
         if (!parent_)
             parent_ = current_;
     }
     for (auto entry = object.begin(); entry != object.end(); ++entry) {
         map<string, Method>::iterator method = methods_.find(entry->first);
-
         if (method != methods_.end()) {
             ((this->*method->second)(entry->second));
         }
@@ -529,7 +584,7 @@ void GeoJSon::decode() {
         if (MagicsGlobal::strict()) {
             throw;
         }
-        MagLog::error() << "Could not processed the file: " << path_ << ": " << e.what() << endl;
+        MagLog::error() << "GEOJSON:Could not processed the file: " << path_ << ": " << e.what() << endl;
         abort();
     }
     if (parent_) {
@@ -547,14 +602,21 @@ PointsHandler& GeoJSon::points(const Transformation& transformation, bool) {
     decode();
     pointsHandlers_.push_back(new PointsHandler(*this));
     return *(pointsHandlers_.back());
+
 }
 
 void GeoJSon::customisedPoints(const Transformation&, const std::set<string>& needs, CustomisedPointsList& out, bool) {
     decode();
-
-
+   
     if (parent_) {
         parent_->create(needs, out);
         parent_->shift(needs, out);
     }
+}
+void GeoJSon::getInfo(const std::set<string>& what, 
+            multimap<string, string>& info)
+{
+   
+        info.insert(make_pair("type", value_));
+    
 }

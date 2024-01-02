@@ -253,10 +253,9 @@ void HorizontalAxis::label(HorizontalAxisVisitor& axis) {
             p                        = positions.find((*x)->level() - 1);
             pos                      = axis.offsetTickLabel(height, p->second);
             positions[(*x)->level()] = pos;
-
+           
             title_position_ = pos;
         }
-
         PaperPoint point(transformation.x((*x)->position()), pos);
 
         bool out = false;
@@ -310,6 +309,9 @@ void VerticalAxis::label(VerticalAxisVisitor& axis) {
 
     int count = -1;
     map<int, double> positions;
+
+    map<int, double> length;
+
     double x1, x2;
     axis.tick(x1, x2, magCompare(tick_position_, "out"));
     x1              = axis.offsetTickLabel(0.025, x1);
@@ -318,6 +320,8 @@ void VerticalAxis::label(VerticalAxisVisitor& axis) {
 
     PaperPoint point;
 
+    double gap = 0;
+    double last = 1;
     for (AxisItems::const_iterator y = items_.begin(); y != items_.end(); ++y) {
         if ((*y)->isLabel() == false)
             continue;
@@ -339,25 +343,52 @@ void VerticalAxis::label(VerticalAxisVisitor& axis) {
             continue;
 
         double height = ((*y)->height() == DBL_MIN || (*y)->height() == 0) ? label_height_ : (*y)->height();
+        double cwidth = height * 1.9; //A good rough starting point for x-height ratio is about .5
         double pos;
-        map<int, double>::iterator p = positions.find((*y)->level());
 
-        if (p != positions.end()) {
-            pos = p->second - axis.offsetTickLabel(height, 0);
-            ;
+
+        map<int, double>::iterator l = length.find((*y)->level());
+        if (l == length.end()) {
+            last = 1;
+            length.insert(make_pair((*y)->level(),last));
         }
         else {
+            last = l->second;
+        }
+
+        auto width = length.find((*y)->level()-1);
+
+    
+       
+        map<int, double>::iterator p = positions.find((*y)->level());
+        double w;
+
+        if (p != positions.end()) {
+            pos = p->second;
+        }
+        else {
+
+            gap  = (width == length.end() ) ? cwidth : cwidth*(width->second); 
+            w = (width == length.end()) ? 1 : width->second; 
+            last = label.size();
             p                        = positions.find((*y)->level() - 1);
-            pos                      = p->second;
-            double newpos            = axis.offsetTickLabel(height, p->second);
-            positions[(*y)->level()] = newpos;
+            pos                      = axis.offsetTickLabel(gap, p->second);
+            positions[(*y)->level()] = pos;
+        }
+        if (label.size() > last) {
+            last = label.size();
+            length[(*y)->level()] = last;
+            
         }
 
         double tpos = axis.offsetTickLabel(height * label.size(), p->second);
-        if (tpos < title_position_)
-            title_position_ = tpos;
+        
+        title_position_ = axis.offsetTitle(title_position_, axis.offsetTickLabel(height * last, tpos) );
 
         PaperPoint point(pos, transformation.y((*y)->position()));
+
+       
+
 
         bool out = false;
 
@@ -392,6 +423,7 @@ void VerticalAxis::label(VerticalAxisVisitor& axis) {
         text->setVerticalAlign(VerticalAlign::HALF);
         text->push_back(point);
         axis.push_back(text);
+     
     }
 }
 
@@ -498,11 +530,46 @@ void VerticalAxis::title(VerticalAxisVisitor& out) {
     out.push_back(text);
 }
 
+void HorizontalAxis::highlight(DrawingVisitor& out) const {
+    if ( highlighted_values_.empty() )
+        return;
+    double bottom = out.minY();
+    double top    = out.maxY();
+    const Transformation& transformation = out.transformation();
+
+    for ( auto highlight = highlighted_values_.begin(); highlight != highlighted_values_.end(); ++highlight ) {
+        Polyline* high = new Polyline();
+        high->push_back(PaperPoint(transformation.x(*highlight), bottom));
+        high->push_back(PaperPoint(transformation.x(*highlight), top));
+        high->setColour(*highlighted_values_colour_);
+        high->setLineStyle(highlighted_values_style_);
+        high->setThickness(highlighted_values_thickness_);
+        out.push_back(high);
+    }
+}
+
+
 void HorizontalAxis::grid(DrawingVisitor& out) const {
     double bottom = out.minY();
     double top    = out.maxY();
+    double left   = out.minX();
+    double right  = out.maxX();
     double pos;
     const Transformation& transformation = out.transformation();
+
+    if (!grid_background_colour_->none()) {
+            Polyline* area = new Polyline();
+            area->setColour(*grid_background_colour_);
+            area->setFilled(true);
+            area->setShading(new FillShadingProperties());
+            area->setFillColour(*grid_background_colour_);
+            out.push_back(area);
+            area->push_back(PaperPoint(left, bottom));
+            area->push_back(PaperPoint(left, top));
+            area->push_back(PaperPoint(right, top));
+            area->push_back(PaperPoint(right, bottom));
+            area->push_back(PaperPoint(left, bottom));   
+    }
 
     if (!grid_) {
         if (grid_reference_level_ != INT_MAX) {
@@ -564,6 +631,26 @@ void HorizontalAxis::grid(DrawingVisitor& out) const {
         }
         out.push_back(grid);
     }
+}
+
+void VerticalAxis::highlight(DrawingVisitor& out) const {
+    if ( highlighted_values_.empty() )
+        return;
+    double left  = out.minX();
+    double right = out.maxX();
+    const Transformation& transformation = out.transformation();
+
+    for ( auto highlight = highlighted_values_.begin(); highlight != highlighted_values_.end(); ++highlight ) {
+        Polyline* high = new Polyline();
+        high->push_back(PaperPoint(left, transformation.y(*highlight)));
+        high->push_back(PaperPoint(right, transformation.y(*highlight)));
+        high->setColour(*highlighted_values_colour_);
+        high->setLineStyle(highlighted_values_style_);
+        high->setThickness(highlighted_values_thickness_);
+        out.push_back(high);
+    }
+
+
 }
 
 void VerticalAxis::grid(DrawingVisitor& out) const {

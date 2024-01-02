@@ -8,7 +8,7 @@
  * nor does it submit to any jurisdiction.
  */
 
-/*! \file FortranMagics.cc
+/*! \file ics.cc
     \brief Implementation of the Template class FortranMagics.
 
     Magics Team - ECMWF 2007
@@ -102,13 +102,21 @@ void FortranMagics::reset() {
     empty_            = true;
     gribindex_        = 0;
     legend_todo_      = false;
+
+
     symbolinput_todo_ = false;
     matrixinput_todo_ = false;
     polyinput_todo_   = false;
+    obsinput_todo_    = false;
+    obsinput_todo_    = false;
 
 
     while (actions_.size()) {
         actions_.pop();
+    }
+
+    while (this->size()) {
+        this->pop();
     }
 
     // TODO: clear memory
@@ -162,6 +170,7 @@ void FortranMagics::popen() {
     actions_.push(&FortranMagics::page);
     actions_.push(&FortranMagics::superpage);
     actions_.push(&FortranMagics::drivers);
+
 }
 
 /*! \brief Main dispatch method
@@ -199,6 +208,7 @@ void FortranMagics::pclose() {
     // WE reset !
     axisContainer_ = 0;
     action_        = 0;
+    empty_         = true;
 
     string legend;
     ParameterManager::get("legend", legend);
@@ -284,9 +294,8 @@ void FortranMagics::newpage() {
     // push(node);
 }
 
-void FortranMagics::superpage() {
+void FortranMagics::superpage() {      
     root_ = new FortranRootSceneNode();
-
     push(root_);
 
     root_->getReady();
@@ -424,19 +433,29 @@ void FortranMagics::ptephi() {
 }
 void FortranMagics::pobs() {
     actions();
-    action_         = new VisualAction();
-    ObsDecoder* obs = new ObsDecoder();
-    if (obs->defined()) {
-        action_->data(obs);
-        top()->push_back(action_);
-        action_->visdef(new ObsPlotting());
-        return;
+
+    if (!action_ || obsinput_todo_ ) {
+        action_         = new VisualAction();
+        ObsDecoder* obs = new ObsDecoder();
+        cout << "OBS" << endl;
+        if (obs->defined()) {
+            cout << "defined" << endl;
+            action_->data(obs);
+            top()->push_back(action_);
+           
+        }
+        else {
+            action_ = new VisualAction();
+            action_->data(new ObsJSon());
+            top()->push_back(action_);
+        }
     }
-    action_ = new VisualAction();
-    action_->data(new ObsJSon());
-    top()->push_back(action_);
+    // action_ = new VisualAction();
+    // action_->data(new ObsJSon());
+    // top()->push_back(action_);
     action_->visdef(new ObsPlotting());
-    return;
+    
+    
 }
 
 #include "MatrixTestDecoder.h"
@@ -528,7 +547,7 @@ const char* FortranMagics::metagrib() {
         cout << "-----------------------------" << endl;
     }
     ostringstream out;
-    out << style;
+    out << "{" << style << "}";
     static string temp;
     temp = out.str();
     return temp.c_str();
@@ -613,7 +632,7 @@ const char* FortranMagics::metanetcdf() {
     StyleEntry style;
     library->getStyle(request, attributes, style);
     ostringstream out;
-    out << style;
+    out << "{" << style << "}";
     static string temp;
     temp = out.str();
     return temp.c_str();
@@ -636,7 +655,7 @@ const char* FortranMagics::metainput() {
     StyleEntry style;
     library->getStyle(request, attributes, style);
     ostringstream out;
-    out << style;
+    out << "{" << style << "}";
     static string temp;
     temp = out.str();
     return temp.c_str();
@@ -816,6 +835,8 @@ void FortranMagics::ptext() {
 
 void FortranMagics::psymb() {
     actions();
+
+
 
     string mode;
     string wind;

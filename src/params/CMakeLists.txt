@@ -13,6 +13,8 @@ BinaryObject.xml
 BinningObject.xml
 BothValuePlotMethod.xml
 Boundaries.xml
+BoxPlotVisualiser.xml
+BoxPlotDecoder.xml
 CalculateColourTechnique.xml
 GradientsColourTechnique.xml
 PaletteColourTechnique.xml
@@ -137,6 +139,7 @@ Proj4PolarSouth.xml
 Proj4Mercator.xml
 Proj4Collignon.xml
 Proj4Automatic.xml
+Proj4EPSG3035.xml
 Proj4EPSG32661.xml
 Proj4EPSG32761.xml
 Proj4EPSG4326.xml
@@ -206,14 +209,8 @@ YLogarithmicCoordinate.xml
 YRegularCoordinate.xml
 )
 
-list( APPEND _magics_xmls BoxPlotBox.xml
-		BoxPlotBoxBorder.xml
-		BoxPlotDecoder.xml
-		BoxPlotMedian.xml
-		BoxPlotVisualiser.xml
-		BoxPlotWhiskerBorder.xml
-		BoxPlotWhiskerBox.xml
-		BoxPlotWhiskerLine.xml
+list( APPEND _magics_xmls
+		
 		CdfGraph.xml
 		EpsCloud.xml
 		EpsDirection.xml

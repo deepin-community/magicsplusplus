@@ -4,6 +4,7 @@ export DH_VERBOSE=1
 
 DPKG_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/buildflags.mk
+include /usr/share/debhelper/dh-fortran/fortran-support.mk
 
 # To enable all, uncomment following line
 # DEB_BUILD_MAINT_OPTIONS:= hardening=+all,-pie
@@ -15,17 +16,8 @@ DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 LC_ALL=C
 export LC_ALL
 
-export QT_SELECT=5
-
 LIBDIR:=/usr/lib/$(DEB_HOST_MULTIARCH)
 CMAKEDIR:=debian/tmp/$(LIBDIR)/cmake/magics
-
-# Fixes for 32-bit archss
-ARCH_32BIT:=   i386 armel armhf mipsel hppa hurd-i386 m68k powerpc sh4 x32
-DO_ODB:= $(if $(filter $(DEB_TARGET_ARCH), $(ARCH_32BIT)),OFF,ON)
-
-# Uncomment this to turn on verbose mode.
-export DH_VERBOSE=1
 
 %:
 	dh $@ --with-buildsystem=ecbuild
@@ -34,7 +26,7 @@ export extra_flags +=  \
 	-DBUILD_SITE=debian \
 	-DENABLE_LIBGD=1 \
 	-DHAVE_BOOST=1 \
-	-DENABLE_ODB=$(DO_ODB) \
+	-DENABLE_ODB=On \
 	-DENABLE_EFAS=1 \
 	-DHAVE_DLFCN_H=1 \
 	-DHAVE_INTTYPES_H=1 \
@@ -70,15 +62,15 @@ export extra_flags +=  \
 	-DENABLE_TESTS=ON \
 	-DENABLE_GEOTIFF=ON \
 	-DGEOTIFF_INCLUDE_DIR=/usr/include/geotiff \
+	-DXKB_INCLUDE_DIR=/usr/include/xkb \
 	-DENABLE_RPATHS=OFF \
 	-DENABLE_CAIRO=ON \
 	-DENABLE_BUFR=ON \
 	-DENABLE_GRIB=ON \
 	-DENABLE_METVIEW=ON \
-	-DENABLE_QT5=ON \
 	-DENABLE_NETCDF=ON \
 	-DCMAKE_C_FLAGS='$(CFLAGS) ' \
-	-DCMAKE_CXX_FLAGS='$(CXXFLAGS) -I/usr/include/terralib -I/usr/include/terralib/kernel -I/usr/include/geotiff' \
+	-DCMAKE_CXX_FLAGS='$(CXXFLAGS) -I/usr/include/terralib -I/usr/include/terralib/kernel -I/usr/include/geotiff -I/usr/include/xkb' \
 	-DMAGICS_EXTRA_LIBRARIES='-lterralib -lgd -lemosR64' 
 
 export LD_LIBRARY_PATH:=$(CURDIR)/debian/tmp/usr/lib:$(LD_LIBRARY_PATH)
