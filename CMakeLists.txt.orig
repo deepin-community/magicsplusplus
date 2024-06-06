@@ -15,7 +15,11 @@ cmake_minimum_required( VERSION 3.12 FATAL_ERROR )
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild/cmake")
 find_package( ecbuild 3.4 REQUIRED )
 
-project( magics VERSION 4.15.4 LANGUAGES CXX )
+<<<<<<< HEAD
+project( magics VERSION 4.16.0 LANGUAGES CXX )
+=======
+project( magics VERSION 4.15.3 LANGUAGES CXX )
+>>>>>>> @{-1}
 
 # make sure that the header files are installed into include/magics
 # note that this needs to be done before ecbuild_declare_project()
@@ -221,16 +225,7 @@ if( EC_OS_NAME MATCHES "windows" )
 
 else()
 
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual -Wno-unused-variable -Wno-reorder -Wno-sign-compare")
-  ecbuild_add_cxx_flags("-Wno-unused-parameter" NO_FAIL)
-  ecbuild_add_cxx_flags("-Wno-overloaded-virtual" NO_FAIL)
-  ecbuild_add_cxx_flags("-Wno-unused-variable" NO_FAIL)
-  ecbuild_add_cxx_flags("-Wno-reorder" NO_FAIL)
-  ecbuild_add_cxx_flags("-Wno-sign-compare" NO_FAIL)
-  # For NVIDIA
-  ecbuild_add_cxx_flags("--diag_suppress=partial_override" NO_FAIL)
-  ecbuild_add_cxx_flags("--diag_suppress=virtual_function_decl_hidden" NO_FAIL)
-  ecbuild_add_cxx_flags("--diag_suppress=code_is_unreachable" NO_FAIL)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual -Wno-unused-variable -Wno-reorder -Wno-sign-compare")
 
   # set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual -Wno-unused-variable -Wno-reorder-ctor -Wno-sign-compare")
 

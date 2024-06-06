@@ -1,3 +1,22 @@
+magics++ (4.15.4-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Fri, 19 Apr 2024 09:30:54 +0100
+
+magics++ (4.15.3-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sat, 02 Mar 2024 09:54:31 +0000
+
+magics++ (4.15.2-1) unstable; urgency=medium
+
+  * New upstream release
+  * Use/recommend pkgconf rather than obsolete pkg-config
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Wed, 07 Feb 2024 07:06:50 +0000
+
 magics++ (4.15.0-2) unstable; urgency=medium
 
   * Remove old 32-bit code from d/rules
