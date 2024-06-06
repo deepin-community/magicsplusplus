@@ -6,6 +6,7 @@ Build-Depends: debhelper-compat  (= 13) ,
  architecture-is-64-bit,
  dh-fortran-mod (>= 0.31),
  ecbuild (>= 3.3.0-3),
+ pkgconf,
  python3-all-dev,
  libxcb-xkb-dev,
  libhdf5-dev | libhdf5-mpi-dev, 
@@ -68,7 +69,7 @@ Depends: libmagplus3v5 ( = ${binary:Version} ),
  ${misc:Depends}, ${ecbuild:Depends},
  python3, libmagics++-metview-dev, libterralib-dev, magics++,
  libodc-dev [!powerpc !armel !armhf !hppa !i386 !mipsel]
-Recommends: pkg-config
+Recommends: pkgconf
 Description: Development files for ECMWF  plotting software MAGICS++
  Magics++ is the latest generation of the ECMWF's Meteorological plotting
  software MAGICS. Although completely redesigned in C++, it is intended to be
